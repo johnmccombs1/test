@@ -1,0 +1,40 @@
+From 50538c697279cd2d87e3a7c9128ba0174cd735c0 Mon Sep 17 00:00:00 2001
+From: Sergey Shvets <sshvets@magento.com>
+Date: Thu, 31 Jan 2019 13:25:53 +0200
+Subject: [PATCH] =?UTF-8?q?MAGETWO-96983:=20M2.3=20=E2=80=93=20Sodium=20cr?=
+ =?UTF-8?q?ypto=20adapter=20errors=20on=20unexpected=20input?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../Encryption/Adapter/SodiumChachaIetf.php      | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/lib/internal/Magento/Framework/Encryption/Adapter/SodiumChachaIetf.php b/lib/internal/Magento/Framework/Encryption/Adapter/SodiumChachaIetf.php
+index 1ed95731db75..0c56c2217669 100644
+--- a/lib/internal/Magento/Framework/Encryption/Adapter/SodiumChachaIetf.php
++++ b/lib/internal/Magento/Framework/Encryption/Adapter/SodiumChachaIetf.php
+@@ -59,12 +59,16 @@ public function decrypt(string $data): string
+         $nonce = mb_substr($data, 0, SODIUM_CRYPTO_AEAD_CHACHA20POLY1305_IETF_NPUBBYTES, '8bit');
+         $payload = mb_substr($data, SODIUM_CRYPTO_AEAD_CHACHA20POLY1305_IETF_NPUBBYTES, null, '8bit');
+ 
+-        $plainText = sodium_crypto_aead_chacha20poly1305_ietf_decrypt(
+-            $payload,
+-            $nonce,
+-            $nonce,
+-            $this->key
+-        );
++        try {
++            $plainText = sodium_crypto_aead_chacha20poly1305_ietf_decrypt(
++                $payload,
++                $nonce,
++                $nonce,
++                $this->key
++            );
++        } catch (\SodiumException $e) {
++            $plainText = '';
++        }
+ 
+         return $plainText !== false ? $plainText : '';
+     }
